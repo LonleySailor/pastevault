@@ -1,17 +1,7 @@
 # PasteVault Backend Makefile
+# This is a simplified version that works with the root Makefile
 
-.PHONY: help build run test clean dev deps
-
-# Default target
-help:
-	@echo "Available targets:"
-	@echo "  build    - Build the application"
-	@echo "  run      - Run the application"
-	@echo "  dev      - Run in development mode with hot reload"
-	@echo "  test     - Run all tests"
-	@echo "  clean    - Clean build artifacts"
-	@echo "  deps     - Download and tidy dependencies"
-	@echo "  health   - Test health endpoint (server must be running)"
+.PHONY: build run dev test clean deps health install-tools hot db-reset
 
 # Build the application
 build:
@@ -70,8 +60,3 @@ db-reset:
 	@echo "Resetting database..."
 	rm -f pastevault.db
 	@echo "Database will be recreated on next server start"
-
-# Show project structure
-tree:
-	@echo "Project structure:"
-	tree -I 'pastevault-server|pastevault.db|*.log'

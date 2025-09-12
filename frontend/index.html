@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="PasteVault - Secure, self-hosted pastebin for sharing code and text with password protection and automatic expiration." />
+  <meta name="keywords" content="pastebin, code sharing, text sharing, secure, self-hosted, password protection" />
+  <meta name="author" content="LonleySailor" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="PasteVault - Secure Code & Text Sharing" />
+  <meta property="og:description"
+    content="Share code and text securely with optional password protection and automatic expiration." />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="PasteVault - Secure Code & Text Sharing" />
+  <meta property="twitter:description"
+    content="Share code and text securely with optional password protection and automatic expiration." />
+
+  <title>PasteVault - Secure Code & Text Sharing</title>
+
+  <!-- CSS Variables for toast styling -->
+  <style>
+    :root {
+      --toast-bg: #ffffff;
+      --toast-color: #1f2937;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --toast-bg: #374151;
+        --toast-color: #f9fafb;
+      }
+    }
+
+    .dark {
+      --toast-bg: #374151;
+      --toast-color: #f9fafb;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>
