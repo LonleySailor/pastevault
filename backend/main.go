@@ -45,6 +45,7 @@ func main() {
 	// Initialize middleware
 	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
 	corsMiddleware := middleware.SetupCORS(cfg.CORSOrigins, cfg.IsDevelopment())
+	rateLimiter := middleware.NewDefaultRateLimiter()
 
 	// Initialize handlers
 	userHandler := handlers.NewUserHandler(userRepo, validator)
@@ -64,8 +65,9 @@ func main() {
 	api.HandleFunc("/health", healthCheckHandler(db)).Methods("GET")
 
 	// Paste routes
-	api.HandleFunc("/paste", pasteHandler.Create).Methods("POST")
-	api.HandleFunc("/paste/{id}", pasteHandler.GetByID).Methods("GET")
+	api.Handle("/paste", rateLimiter.LimitPasteCreation(http.HandlerFunc(pasteHandler.Create))).Methods("POST")
+	api.Handle("/paste/{id}", rateLimiter.LimitPasteRetrieval(http.HandlerFunc(pasteHandler.GetByID))).Methods("GET")
+	api.Handle("/paste/{id}/raw", rateLimiter.LimitPasteRetrieval(http.HandlerFunc(pasteHandler.GetRaw))).Methods("GET")
 	api.HandleFunc("/paste/{id}/unlock", pasteHandler.GetByIDWithPassword).Methods("POST")
 
 	// User authentication routes

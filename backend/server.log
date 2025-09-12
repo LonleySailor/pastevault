@@ -1,0 +1,40 @@
+nohup: ignoring input
+2025/09/12 16:25:10 Starting PasteVault API server...
+2025/09/12 16:25:10 Environment: development
+2025/09/12 16:25:10 Port: 8080
+2025/09/12 16:25:10 Database: ./pastevault.db
+2025/09/12 16:25:10 Running database migrations...
+2025/09/12 16:25:10 Migration 1 already applied, skipping
+2025/09/12 16:25:10 Migration 2 already applied, skipping
+2025/09/12 16:25:10 Migration 3 already applied, skipping
+2025/09/12 16:25:10 Database migrations completed successfully
+2025/09/12 16:25:10 Database connected successfully at ./pastevault.db
+2025/09/12 16:25:10 Server starting on port 8080
+2025/09/12 16:25:10 Health check available at: http://localhost:8080/api/health
+[cors] 2025/09/12 16:25:18 Handler: Actual request
+[cors] 2025/09/12 16:25:18   Actual request no headers added: missing origin
+POST /api/paste [::1]:42552
+[cors] 2025/09/12 16:30:04 Handler: Actual request
+[cors] 2025/09/12 16:30:04   Actual request no headers added: missing origin
+POST /api/paste [::1]:47876
+[cors] 2025/09/12 16:30:10 Handler: Actual request
+[cors] 2025/09/12 16:30:10   Actual request no headers added: missing origin
+GET /api/paste/Hm2XWU [::1]:60396
+[cors] 2025/09/12 16:30:23 Handler: Actual request
+[cors] 2025/09/12 16:30:23   Actual request no headers added: missing origin
+POST /api/paste [::1]:41934
+[cors] 2025/09/12 16:30:31 Handler: Actual request
+[cors] 2025/09/12 16:30:31   Actual request no headers added: missing origin
+GET /api/paste/jb7HD9 [::1]:53406
+[cors] 2025/09/12 16:30:47 Handler: Actual request
+[cors] 2025/09/12 16:30:47   Actual request no headers added: missing origin
+GET /api/paste/jb7HD9/raw [::1]:49172
+[cors] 2025/09/12 16:30:54 Handler: Actual request
+[cors] 2025/09/12 16:30:54   Actual request no headers added: missing origin
+POST /api/paste [::1]:42988
+[cors] 2025/09/12 16:30:54 Handler: Actual request
+[cors] 2025/09/12 16:30:54   Actual request no headers added: missing origin
+POST /api/paste [::1]:43000
+[cors] 2025/09/12 16:30:54 Handler: Actual request
+[cors] 2025/09/12 16:30:54   Actual request no headers added: missing origin
+POST /api/paste [::1]:43010

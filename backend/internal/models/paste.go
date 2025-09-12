@@ -9,6 +9,7 @@ import (
 type Paste struct {
 	ID           string     `json:"id" db:"id"`
 	Content      string     `json:"content" db:"content"`
+	Language     string     `json:"language,omitempty" db:"language"`
 	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
 	ExpiresAt    *time.Time `json:"expires_at,omitempty" db:"expires_at"`
 	PasswordHash *string    `json:"-" db:"password_hash"` // Never expose password hash in JSON
@@ -28,14 +29,15 @@ func NewPasteRepository(db *sql.DB) *PasteRepository {
 // Create creates a new paste in the database
 func (r *PasteRepository) Create(paste *Paste) error {
 	query := `
-		INSERT INTO pastes (id, content, expires_at, password_hash, user_id)
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO pastes (id, content, language, expires_at, password_hash, user_id)
+		VALUES (?, ?, ?, ?, ?, ?)
 		RETURNING created_at`
 
 	err := r.db.QueryRow(
 		query,
 		paste.ID,
 		paste.Content,
+		paste.Language,
 		paste.ExpiresAt,
 		paste.PasswordHash,
 		paste.UserID,
@@ -48,13 +50,14 @@ func (r *PasteRepository) Create(paste *Paste) error {
 func (r *PasteRepository) GetByID(id string) (*Paste, error) {
 	paste := &Paste{}
 	query := `
-		SELECT id, content, created_at, expires_at, password_hash, user_id 
+		SELECT id, content, language, created_at, expires_at, password_hash, user_id 
 		FROM pastes 
 		WHERE id = ?`
 
 	err := r.db.QueryRow(query, id).Scan(
 		&paste.ID,
 		&paste.Content,
+		&paste.Language,
 		&paste.CreatedAt,
 		&paste.ExpiresAt,
 		&paste.PasswordHash,
@@ -74,7 +77,7 @@ func (r *PasteRepository) GetByID(id string) (*Paste, error) {
 // GetByUserID retrieves all pastes by a user ID
 func (r *PasteRepository) GetByUserID(userID int, limit, offset int) ([]*Paste, error) {
 	query := `
-		SELECT id, content, created_at, expires_at, password_hash, user_id 
+		SELECT id, content, language, created_at, expires_at, password_hash, user_id 
 		FROM pastes 
 		WHERE user_id = ?
 		ORDER BY created_at DESC
@@ -92,6 +95,7 @@ func (r *PasteRepository) GetByUserID(userID int, limit, offset int) ([]*Paste, 
 		err := rows.Scan(
 			&paste.ID,
 			&paste.Content,
+			&paste.Language,
 			&paste.CreatedAt,
 			&paste.ExpiresAt,
 			&paste.PasswordHash,
@@ -110,12 +114,13 @@ func (r *PasteRepository) GetByUserID(userID int, limit, offset int) ([]*Paste, 
 func (r *PasteRepository) Update(paste *Paste) error {
 	query := `
 		UPDATE pastes 
-		SET content = ?, expires_at = ?, password_hash = ?
+		SET content = ?, language = ?, expires_at = ?, password_hash = ?
 		WHERE id = ? AND (expires_at IS NULL OR expires_at > datetime('now'))`
 
 	result, err := r.db.Exec(
 		query,
 		paste.Content,
+		paste.Language,
 		paste.ExpiresAt,
 		paste.PasswordHash,
 		paste.ID,

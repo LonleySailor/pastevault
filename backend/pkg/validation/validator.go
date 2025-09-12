@@ -116,20 +116,45 @@ func (v *Validator) ValidateExpiryDuration(duration string) (*time.Duration, *Va
 		return nil, nil // No expiry
 	}
 
-	// Parse duration
+	// Handle special case for "never"
+	if duration == "never" {
+		return nil, nil
+	}
+
+	// Handle common duration formats like "1h", "24h", "7d"
+	// Convert "d" (days) to hours since Go doesn't support days directly
+	if len(duration) > 1 && duration[len(duration)-1:] == "d" {
+		dayStr := duration[:len(duration)-1]
+		// Parse the number of days
+		var days int
+		if _, err := fmt.Sscanf(dayStr, "%d", &days); err != nil {
+			return nil, &ValidationError{Field: "expiry", Message: "invalid duration format (use format like '1h', '30m', '7d', or 'never')"}
+		}
+		// Convert days to hours (multiply by 24)
+		hours := time.Duration(days) * 24 * time.Hour
+
+		// Check maximum duration (1 year)
+		if hours > 365*24*time.Hour {
+			return nil, &ValidationError{Field: "expiry", Message: "expiry duration cannot exceed 1 year"}
+		}
+
+		return &hours, nil
+	}
+
+	// Parse standard Go duration format
 	d, err := time.ParseDuration(duration)
 	if err != nil {
-		return nil, &ValidationError{Field: "expires_in", Message: "invalid duration format (use format like '1h', '30m', '1d')"}
+		return nil, &ValidationError{Field: "expiry", Message: "invalid duration format (use format like '1h', '30m', '7d', or 'never')"}
 	}
 
 	// Check minimum duration (1 minute)
 	if d < time.Minute {
-		return nil, &ValidationError{Field: "expires_in", Message: "expiry duration must be at least 1 minute"}
+		return nil, &ValidationError{Field: "expiry", Message: "expiry duration must be at least 1 minute"}
 	}
 
 	// Check maximum duration (1 year)
 	if d > 365*24*time.Hour {
-		return nil, &ValidationError{Field: "expires_in", Message: "expiry duration cannot exceed 1 year"}
+		return nil, &ValidationError{Field: "expiry", Message: "expiry duration cannot exceed 1 year"}
 	}
 
 	return &d, nil
@@ -153,8 +178,30 @@ func (v *Validator) ValidateID(id string) *ValidationError {
 	return nil
 }
 
-// ValidateCreatePasteRequest validates a create paste request
-func (v *Validator) ValidateCreatePasteRequest(content, password, expiresIn string) ValidationErrors {
+// ValidateLanguage validates the language field for syntax highlighting
+func (v *Validator) ValidateLanguage(language string) *ValidationError {
+	if language == "" {
+		return nil // Optional field
+	}
+
+	// For now, accept any string (as requested)
+	// Basic validation: length and no control characters
+	if len(language) > 50 {
+		return &ValidationError{Field: "language", Message: "must be at most 50 characters"}
+	}
+
+	// Check for control characters
+	for _, char := range language {
+		if char < 32 && char != 9 && char != 10 && char != 13 { // Allow tab, newline, carriage return
+			return &ValidationError{Field: "language", Message: "cannot contain control characters"}
+		}
+	}
+
+	return nil
+}
+
+// ValidateCreatePasteRequestFull validates a create paste request with all fields
+func (v *Validator) ValidateCreatePasteRequestFull(content, password, expiry, language string) ValidationErrors {
 	var errors ValidationErrors
 
 	// Validate content
@@ -164,16 +211,25 @@ func (v *Validator) ValidateCreatePasteRequest(content, password, expiresIn stri
 
 	// Validate password if provided
 	if password != "" {
-		if err := v.ValidatePassword(password); err != nil {
-			errors.Add(err.Field, err.Message)
+		// For paste passwords, we have a minimum of 4 characters (different from user passwords)
+		if len(password) < 4 {
+			errors.Add("password", "must be at least 4 characters")
+		}
+		if len(password) > 128 {
+			errors.Add("password", "must be at most 128 characters")
 		}
 	}
 
 	// Validate expiry duration if provided
-	if expiresIn != "" {
-		if _, err := v.ValidateExpiryDuration(expiresIn); err != nil {
+	if expiry != "" {
+		if _, err := v.ValidateExpiryDuration(expiry); err != nil {
 			errors.Add(err.Field, err.Message)
 		}
+	}
+
+	// Validate language if provided
+	if err := v.ValidateLanguage(language); err != nil {
+		errors.Add(err.Field, err.Message)
 	}
 
 	return errors
