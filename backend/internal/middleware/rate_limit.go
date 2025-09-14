@@ -13,24 +13,30 @@ type RateLimiter struct {
 	mu       sync.RWMutex
 
 	// Configuration
-	pasteLimit     int           // Max pastes per IP per window
-	retrievalLimit int           // Max retrieval requests per IP per window
-	window         time.Duration // Time window for rate limiting
+	pasteLimit        int           // Max pastes per IP per window
+	retrievalLimit    int           // Max retrieval requests per IP per window
+	authLimit         int           // Max authentication attempts per IP per window
+	registrationLimit int           // Max registration attempts per IP per window
+	window            time.Duration // Time window for rate limiting
 }
 
 type visitor struct {
-	pasteCount     int
-	retrievalCount int
-	lastSeen       time.Time
+	pasteCount        int
+	retrievalCount    int
+	authCount         int
+	registrationCount int
+	lastSeen          time.Time
 }
 
 // NewRateLimiter creates a new rate limiter with specified limits
-func NewRateLimiter(pasteLimit, retrievalLimit int, window time.Duration) *RateLimiter {
+func NewRateLimiter(pasteLimit, retrievalLimit, authLimit, registrationLimit int, window time.Duration) *RateLimiter {
 	rl := &RateLimiter{
-		visitors:       make(map[string]*visitor),
-		pasteLimit:     pasteLimit,
-		retrievalLimit: retrievalLimit,
-		window:         window,
+		visitors:          make(map[string]*visitor),
+		pasteLimit:        pasteLimit,
+		retrievalLimit:    retrievalLimit,
+		authLimit:         authLimit,
+		registrationLimit: registrationLimit,
+		window:            window,
 	}
 
 	// Start cleanup goroutine
@@ -41,8 +47,11 @@ func NewRateLimiter(pasteLimit, retrievalLimit int, window time.Duration) *RateL
 
 // NewDefaultRateLimiter creates a rate limiter with default settings from requirements
 func NewDefaultRateLimiter() *RateLimiter {
-	// From requirements: 10 pastes per IP per hour, 100 requests per IP per hour
-	return NewRateLimiter(10, 100, time.Hour)
+	// From requirements:
+	// - 10 pastes per IP per hour, 100 requests per IP per hour
+	// - 5 login attempts per 15 minutes per IP
+	// - 3 registrations per hour per IP
+	return NewRateLimiter(10, 100, 5, 3, time.Hour)
 }
 
 // LimitPasteCreation middleware for limiting paste creation
@@ -66,6 +75,34 @@ func (rl *RateLimiter) LimitPasteRetrieval(next http.Handler) http.Handler {
 
 		if !rl.allowPasteRetrieval(ip) {
 			http.Error(w, "Rate limit exceeded for paste retrieval", http.StatusTooManyRequests)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// LimitAuthentication middleware for limiting authentication attempts
+func (rl *RateLimiter) LimitAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := getClientIP(r)
+
+		if !rl.allowAuthentication(ip) {
+			http.Error(w, "Rate limit exceeded for authentication. Please try again in 15 minutes", http.StatusTooManyRequests)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// LimitRegistration middleware for limiting registration attempts
+func (rl *RateLimiter) LimitRegistration(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ip := getClientIP(r)
+
+		if !rl.allowRegistration(ip) {
+			http.Error(w, "Rate limit exceeded for registration. Please try again later", http.StatusTooManyRequests)
 			return
 		}
 
@@ -105,6 +142,39 @@ func (rl *RateLimiter) allowPasteRetrieval(ip string) bool {
 	return true
 }
 
+// allowAuthentication checks if authentication is allowed for the given IP
+func (rl *RateLimiter) allowAuthentication(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	v := rl.getOrCreateVisitor(ip)
+
+	// Special rate limit for auth: 5 attempts per 15 minutes
+	if v.authCount >= rl.authLimit {
+		return false
+	}
+
+	v.authCount++
+	v.lastSeen = time.Now()
+	return true
+}
+
+// allowRegistration checks if registration is allowed for the given IP
+func (rl *RateLimiter) allowRegistration(ip string) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	v := rl.getOrCreateVisitor(ip)
+
+	if v.registrationCount >= rl.registrationLimit {
+		return false
+	}
+
+	v.registrationCount++
+	v.lastSeen = time.Now()
+	return true
+}
+
 // getOrCreateVisitor gets or creates a visitor record for the given IP
 func (rl *RateLimiter) getOrCreateVisitor(ip string) *visitor {
 	v, exists := rl.visitors[ip]
@@ -132,6 +202,8 @@ func (rl *RateLimiter) cleanupVisitors() {
 				// Reset counters for visitors still within window
 				v.pasteCount = 0
 				v.retrievalCount = 0
+				v.authCount = 0
+				v.registrationCount = 0
 			}
 		}
 		rl.mu.Unlock()

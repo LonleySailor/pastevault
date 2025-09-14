@@ -10,11 +10,16 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
     username: string;
-    email: string;
-    password: string;
+    password: string;  // Remove email as it's not in our backend
+}
+
+export interface TokenPair {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
 }
 
 export interface AuthResponse {
     user: User;
-    token: string;
+    tokens: TokenPair;
 }

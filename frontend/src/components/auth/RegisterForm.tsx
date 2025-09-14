@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { EyeIcon, EyeSlashIcon, UserIcon, LockClosedIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, EyeSlashIcon, UserIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 interface RegisterFormProps {
-    onSubmit: (username: string, email: string, password: string) => void;
+    onSubmit: (username: string, password: string) => void;
     loading?: boolean;
     error?: string;
 }
@@ -15,7 +15,6 @@ interface PasswordStrength {
 
 export function RegisterForm({ onSubmit, loading = false, error }: RegisterFormProps) {
     const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -60,12 +59,12 @@ export function RegisterForm({ onSubmit, loading = false, error }: RegisterFormP
 
     const passwordStrength = validatePasswordStrength(password);
     const passwordsMatch = password && confirmPassword && password === confirmPassword;
-    const isFormValid = username.trim() && email.trim() && password && passwordsMatch && passwordStrength.score >= 3;
+    const isFormValid = username.trim() && password && passwordsMatch && passwordStrength.score >= 3;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (isFormValid) {
-            onSubmit(username.trim(), email.trim(), password);
+            onSubmit(username.trim(), password);
         }
     };
 
@@ -120,26 +119,6 @@ export function RegisterForm({ onSubmit, loading = false, error }: RegisterFormP
                         </div>
                     </div>
 
-                    {/* Email */}
-                    <div>
-                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Email
-                        </label>
-                        <div className="relative">
-                            <EnvelopeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                            <input
-                                type="email"
-                                id="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="input-field pl-10"
-                                placeholder="Enter your email"
-                                disabled={loading}
-                                required
-                            />
-                        </div>
-                    </div>
-
                     {/* Password */}
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -182,8 +161,8 @@ export function RegisterForm({ onSubmit, loading = false, error }: RegisterFormP
                                         />
                                     </div>
                                     <span className={`text-xs font-medium ${passwordStrength.score <= 2 ? 'text-red-600 dark:text-red-400' :
-                                            passwordStrength.score <= 3 ? 'text-yellow-600 dark:text-yellow-400' :
-                                                'text-green-600 dark:text-green-400'
+                                        passwordStrength.score <= 3 ? 'text-yellow-600 dark:text-yellow-400' :
+                                            'text-green-600 dark:text-green-400'
                                         }`}>
                                         {getStrengthText(passwordStrength.score)}
                                     </span>

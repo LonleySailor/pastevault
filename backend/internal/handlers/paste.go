@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
+	"github.com/LonleySailor/pastevault/backend/internal/middleware"
 	"github.com/LonleySailor/pastevault/backend/internal/models"
 	"github.com/LonleySailor/pastevault/backend/pkg/utils"
 	"github.com/LonleySailor/pastevault/backend/pkg/validation"
@@ -106,6 +108,11 @@ func (h *PasteHandler) Create(w http.ResponseWriter, r *http.Request) {
 		paste.PasswordHash = &hashedPassword
 	}
 
+	// Handle user association if authenticated
+	if userID, ok := middleware.GetUserIDFromContext(r.Context()); ok {
+		paste.UserID = &userID
+	}
+
 	// Handle expiry if provided
 	if req.Expiry != "" {
 		duration, validationErr := h.validator.ValidateExpiryDuration(req.Expiry)
@@ -119,19 +126,12 @@ func (h *PasteHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Default expiry: 24 hours for anonymous pastes, never for authenticated users
-		// For now, we'll set 24 hours as default since user auth isn't implemented yet
-		expiresAt := time.Now().Add(24 * time.Hour)
-		paste.ExpiresAt = &expiresAt
+		if paste.UserID == nil {
+			expiresAt := time.Now().Add(24 * time.Hour)
+			paste.ExpiresAt = &expiresAt
+		}
+		// For authenticated users, default to no expiry if not specified
 	}
-
-	// TODO: Handle user association when authentication is available
-	// if userID := getUserIDFromContext(r.Context()); userID != 0 {
-	//     paste.UserID = &userID
-	//     // For authenticated users, default to no expiry if not specified
-	//     if req.Expiry == "" {
-	//         paste.ExpiresAt = nil
-	//     }
-	// }
 
 	// Save to database
 	if err := h.pasteRepo.Create(paste); err != nil {
@@ -428,16 +428,25 @@ func (h *PasteHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Check if user owns the paste when authentication is implemented
-	// userID := getUserIDFromContext(r.Context())
-	// if paste.UserID == nil || *paste.UserID != userID {
-	//     WriteError(w, &APIError{
-	//         Code:    "forbidden",
-	//         Message: "You can only delete your own pastes",
-	//         Status:  http.StatusForbidden,
-	//     })
-	//     return
-	// }
+	// Check if user owns the paste
+	userID, ok := middleware.GetUserIDFromContext(r.Context())
+	if !ok {
+		WriteError(w, &APIError{
+			Code:    "unauthorized",
+			Message: "Authentication required",
+			Status:  http.StatusUnauthorized,
+		})
+		return
+	}
+
+	if paste.UserID == nil || *paste.UserID != userID {
+		WriteError(w, &APIError{
+			Code:    "forbidden",
+			Message: "You can only delete your own pastes",
+			Status:  http.StatusForbidden,
+		})
+		return
+	}
 
 	// Delete the paste
 	if err := h.pasteRepo.Delete(id); err != nil {
@@ -446,4 +455,107 @@ func (h *PasteHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// UserPastesResponse represents a paginated list of user pastes
+type UserPastesResponse struct {
+	Pastes []PasteListItem `json:"pastes"`
+	Total  int             `json:"total"`
+	Page   int             `json:"page"`
+	Limit  int             `json:"limit"`
+}
+
+// PasteListItem represents a paste in a list (without content)
+type PasteListItem struct {
+	ID          string `json:"id"`
+	Language    string `json:"language,omitempty"`
+	CreatedAt   string `json:"created_at"`
+	ExpiresAt   string `json:"expires_at,omitempty"`
+	HasPassword bool   `json:"has_password"`
+	Size        int    `json:"size"`
+}
+
+// GetUserPastes handles retrieving all pastes for the authenticated user
+func (h *PasteHandler) GetUserPastes(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		WriteError(w, &APIError{
+			Code:    "method_not_allowed",
+			Message: "Method not allowed",
+			Status:  http.StatusMethodNotAllowed,
+		})
+		return
+	}
+
+	// Extract user ID from context (set by auth middleware)
+	userID, ok := middleware.GetUserIDFromContext(r.Context())
+	if !ok {
+		WriteError(w, &APIError{
+			Code:    "unauthorized",
+			Message: "User ID not found in token",
+			Status:  http.StatusUnauthorized,
+		})
+		return
+	}
+
+	// Parse pagination parameters
+	page := 1
+	limit := 20
+
+	if pageStr := r.URL.Query().Get("page"); pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 && l <= 100 {
+			limit = l
+		}
+	}
+
+	offset := (page - 1) * limit
+
+	// Get user's pastes
+	pastes, err := h.pasteRepo.GetByUserID(userID, limit, offset)
+	if err != nil {
+		WriteError(w, ErrInternalServer)
+		return
+	}
+
+	// Get total count
+	total, err := h.pasteRepo.CountByUserID(userID)
+	if err != nil {
+		WriteError(w, ErrInternalServer)
+		return
+	}
+
+	// Convert to list items
+	pasteItems := make([]PasteListItem, len(pastes))
+	for i, paste := range pastes {
+		item := PasteListItem{
+			ID:          paste.ID,
+			Language:    paste.Language,
+			CreatedAt:   paste.CreatedAt.Format(time.RFC3339),
+			HasPassword: paste.HasPassword(),
+			Size:        len(paste.Content),
+		}
+
+		if paste.ExpiresAt != nil {
+			item.ExpiresAt = paste.ExpiresAt.Format(time.RFC3339)
+		}
+
+		pasteItems[i] = item
+	}
+
+	// Prepare response
+	response := UserPastesResponse{
+		Pastes: pasteItems,
+		Total:  total,
+		Page:   page,
+		Limit:  limit,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }

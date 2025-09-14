@@ -167,6 +167,14 @@ func (r *PasteRepository) Exists(id string) (bool, error) {
 	return count > 0, err
 }
 
+// CountByUserID returns the total number of pastes for a user
+func (r *PasteRepository) CountByUserID(userID int) (int, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM pastes WHERE user_id = ?`
+	err := r.db.QueryRow(query, userID).Scan(&count)
+	return count, err
+}
+
 // IsExpired checks if a paste has expired
 func (p *Paste) IsExpired() bool {
 	if p.ExpiresAt == nil {

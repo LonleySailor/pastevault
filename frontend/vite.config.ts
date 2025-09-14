@@ -8,6 +8,10 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    hmr: {
+      port: 3001, // Use a different port for HMR to avoid conflicts
+      host: 'localhost',
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

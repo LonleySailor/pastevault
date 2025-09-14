@@ -91,12 +91,33 @@ func (v *Validator) ValidateUsername(username string) *ValidationError {
 
 // ValidatePassword validates password strength
 func (v *Validator) ValidatePassword(password string) *ValidationError {
-	if err := v.ValidateString(password, "password", true, 6, 128); err != nil {
+	if err := v.ValidateString(password, "password", true, 8, 128); err != nil {
 		return err
 	}
 
-	// Additional password strength checks can be added here
-	// For now, we just check basic length requirements
+	// Password strength checks as per Phase 4 requirements
+	var hasUpper, hasLower, hasNumber bool
+
+	for _, char := range password {
+		switch {
+		case char >= 'A' && char <= 'Z':
+			hasUpper = true
+		case char >= 'a' && char <= 'z':
+			hasLower = true
+		case char >= '0' && char <= '9':
+			hasNumber = true
+		}
+	}
+
+	if !hasUpper {
+		return &ValidationError{Field: "password", Message: "must contain at least one uppercase letter"}
+	}
+	if !hasLower {
+		return &ValidationError{Field: "password", Message: "must contain at least one lowercase letter"}
+	}
+	if !hasNumber {
+		return &ValidationError{Field: "password", Message: "must contain at least one number"}
+	}
 
 	return nil
 }

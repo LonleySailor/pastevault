@@ -5,17 +5,19 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/LonleySailor/pastevault/backend/internal/auth"
 )
 
 // AuthMiddleware provides authentication functionality
 type AuthMiddleware struct {
-	jwtSecret string
+	tokenManager *auth.TokenManager
 }
 
 // NewAuthMiddleware creates a new auth middleware instance
-func NewAuthMiddleware(jwtSecret string) *AuthMiddleware {
+func NewAuthMiddleware(tokenManager *auth.TokenManager) *AuthMiddleware {
 	return &AuthMiddleware{
-		jwtSecret: jwtSecret,
+		tokenManager: tokenManager,
 	}
 }
 
@@ -42,19 +44,16 @@ func (a *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
 			return
 		}
 
-		// TODO: Implement JWT token validation here
-		// For now, we'll implement a placeholder that accepts any non-empty token
-		// This will be properly implemented in Phase 2 when we add authentication
-
-		// Validate token (placeholder implementation)
-		userID, err := a.validateToken(token)
+		// Validate token
+		claims, err := a.tokenManager.ValidateAccessToken(token)
 		if err != nil {
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
 
-		// Add user ID to request context
-		ctx := context.WithValue(r.Context(), "userID", userID)
+		// Add user ID and username to request context
+		ctx := context.WithValue(r.Context(), "userID", claims.UserID)
+		ctx = context.WithValue(ctx, "username", claims.Username)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -71,10 +70,11 @@ func (a *AuthMiddleware) OptionalAuth(next http.Handler) http.Handler {
 				token := parts[1]
 				if token != "" {
 					// Validate token
-					userID, err := a.validateToken(token)
+					claims, err := a.tokenManager.ValidateAccessToken(token)
 					if err == nil {
-						// Add user ID to request context
-						ctx := context.WithValue(r.Context(), "userID", userID)
+						// Add user ID and username to request context
+						ctx := context.WithValue(r.Context(), "userID", claims.UserID)
+						ctx = context.WithValue(ctx, "username", claims.Username)
 						r = r.WithContext(ctx)
 					}
 				}
@@ -85,18 +85,16 @@ func (a *AuthMiddleware) OptionalAuth(next http.Handler) http.Handler {
 	})
 }
 
-// validateToken validates a JWT token and returns the user ID
-// This is a placeholder implementation that will be properly implemented in Phase 2
-func (a *AuthMiddleware) validateToken(token string) (int, error) {
-	// TODO: Implement proper JWT validation
-	// For now, return an error to indicate that authentication is not yet implemented
-	return 0, fmt.Errorf("JWT authentication not yet implemented")
-}
-
 // GetUserIDFromContext extracts user ID from request context
 func GetUserIDFromContext(ctx context.Context) (int, bool) {
 	userID, ok := ctx.Value("userID").(int)
 	return userID, ok
+}
+
+// GetUsernameFromContext extracts username from request context
+func GetUsernameFromContext(ctx context.Context) (string, bool) {
+	username, ok := ctx.Value("username").(string)
+	return username, ok
 }
 
 // Logging middleware for request logging
@@ -117,6 +115,18 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "Internal server error", http.StatusInternalServerError)
 			}
 		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// SecurityHeaders adds security headers to all responses
+func SecurityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Strict-Transport-Security", "max-age=31536000")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'")
 		next.ServeHTTP(w, r)
 	})
 }

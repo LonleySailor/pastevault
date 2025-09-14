@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '../../components/auth/LoginForm';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
 export function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>('');
-    const { login } = useAuth();
+    const { login } = useAuthContext();
     const navigate = useNavigate();
 
     const handleLogin = async (username: string, password: string) => {

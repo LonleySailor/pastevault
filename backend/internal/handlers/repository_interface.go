@@ -11,4 +11,5 @@ type PasteRepositoryInterface interface {
 	GetByUserID(userID int, limit, offset int) ([]*models.Paste, error)
 	Update(paste *models.Paste) error
 	DeleteExpired() (int64, error)
+	CountByUserID(userID int) (int, error)
 }

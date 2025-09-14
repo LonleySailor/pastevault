@@ -3,7 +3,8 @@ import type {
     User,
     LoginRequest,
     RegisterRequest,
-    AuthResponse
+    AuthResponse,
+    TokenPair
 } from '../types/user';
 
 export class AuthService {
@@ -21,8 +22,9 @@ export class AuthService {
     static async login(data: LoginRequest): Promise<AuthResponse> {
         const response = await api.post<AuthResponse>('/auth/login', data);
 
-        // Store token and user data
-        localStorage.setItem('auth_token', response.data.token);
+        // Store tokens and user data
+        localStorage.setItem('access_token', response.data.tokens.access_token);
+        localStorage.setItem('refresh_token', response.data.tokens.refresh_token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
 
         return response.data;
@@ -32,7 +34,8 @@ export class AuthService {
      * Logout user
      */
     static logout(): void {
-        localStorage.removeItem('auth_token');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
     }
 
@@ -40,7 +43,7 @@ export class AuthService {
      * Get current user profile
      */
     static async getProfile(): Promise<User> {
-        const response = await api.get<User>('/auth/profile');
+        const response = await api.get<User>('/user/profile');  // Correct endpoint
         return response.data;
     }
 
@@ -48,7 +51,7 @@ export class AuthService {
      * Check if user is authenticated
      */
     static isAuthenticated(): boolean {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('access_token');
         return !!token;
     }
 
@@ -70,6 +73,37 @@ export class AuthService {
      * Get auth token
      */
     static getToken(): string | null {
-        return localStorage.getItem('auth_token');
+        return localStorage.getItem('access_token');
+    }
+
+    /**
+     * Get refresh token
+     */
+    static getRefreshToken(): string | null {
+        return localStorage.getItem('refresh_token');
+    }
+
+    /**
+     * Refresh access token
+     */
+    static async refreshToken(): Promise<TokenPair | null> {
+        const refreshToken = this.getRefreshToken();
+        if (!refreshToken) return null;
+
+        try {
+            const response = await api.post<TokenPair>('/auth/refresh', {
+                refresh_token: refreshToken
+            });
+
+            // Update stored tokens
+            localStorage.setItem('access_token', response.data.access_token);
+            localStorage.setItem('refresh_token', response.data.refresh_token);
+
+            return response.data;
+        } catch (error) {
+            // If refresh fails, user needs to login again
+            this.logout();
+            return null;
+        }
     }
 }

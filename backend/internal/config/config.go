@@ -14,7 +14,8 @@ type Config struct {
 	DatabasePath string
 
 	// Security configuration
-	JWTSecret string
+	JWTSecret        string
+	RefreshJWTSecret string
 
 	// CORS configuration
 	CORSOrigins []string
@@ -27,10 +28,11 @@ type Config struct {
 // or sensible defaults for development
 func Load() *Config {
 	config := &Config{
-		Port:         getEnv("PORT", "8080"),
-		DatabasePath: getEnv("DATABASE_PATH", "./pastevault.db"),
-		JWTSecret:    getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
-		Environment:  getEnv("ENVIRONMENT", "development"),
+		Port:             getEnv("PORT", "8080"),
+		DatabasePath:     getEnv("DATABASE_PATH", "./pastevault.db"),
+		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
+		RefreshJWTSecret: getEnv("REFRESH_JWT_SECRET", "your-refresh-secret-key-change-in-production"),
+		Environment:      getEnv("ENVIRONMENT", "development"),
 	}
 
 	// Set CORS origins based on environment

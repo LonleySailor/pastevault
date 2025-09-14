@@ -1,21 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RegisterForm } from '../../components/auth/RegisterForm';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthContext } from '../../context/AuthContext';
 import { toast } from 'react-hot-toast';
 
 export function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string>('');
-    const { register } = useAuth();
+    const { register } = useAuthContext();
     const navigate = useNavigate();
 
-    const handleRegister = async (username: string, email: string, password: string) => {
+    const handleRegister = async (username: string, password: string) => {
         setLoading(true);
         setError('');
 
         try {
-            await register({ username, email, password });
+            await register({ username, password });
             toast.success('Account created successfully!');
             navigate('/dashboard');
         } catch (error) {

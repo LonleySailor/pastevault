@@ -1,18 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/LonleySailor/pastevault/backend/internal/auth"
 	"github.com/LonleySailor/pastevault/backend/internal/config"
 	"github.com/LonleySailor/pastevault/backend/internal/database"
 	"github.com/LonleySailor/pastevault/backend/internal/handlers"
 	"github.com/LonleySailor/pastevault/backend/internal/middleware"
 	"github.com/LonleySailor/pastevault/backend/internal/models"
+	"github.com/LonleySailor/pastevault/backend/internal/services"
 	"github.com/LonleySailor/pastevault/backend/pkg/utils"
 	"github.com/LonleySailor/pastevault/backend/pkg/validation"
 	"github.com/gorilla/mux"
@@ -38,47 +39,66 @@ func main() {
 	userRepo := models.NewUserRepository(db.DB)
 	pasteRepo := models.NewPasteRepository(db.DB)
 
-	// Initialize utilities
+	// Initialize utilities & services
 	idGenerator := utils.NewIDGenerator()
 	validator := validation.NewValidator()
+	tokenManager := auth.NewTokenManager(cfg.JWTSecret, cfg.RefreshJWTSecret)
 
 	// Initialize middleware
-	authMiddleware := middleware.NewAuthMiddleware(cfg.JWTSecret)
+	authMiddleware := middleware.NewAuthMiddleware(tokenManager)
 	corsMiddleware := middleware.SetupCORS(cfg.CORSOrigins, cfg.IsDevelopment())
-	rateLimiter := middleware.NewDefaultRateLimiter()
+	rateLimiter := middleware.NewDefaultRateLimiter() // Will be enhanced later
 
 	// Initialize handlers
-	userHandler := handlers.NewUserHandler(userRepo, validator)
+	userHandler := handlers.NewUserHandler(userRepo, tokenManager, validator)
 	pasteHandler := handlers.NewPasteHandler(pasteRepo, idGenerator, validator)
+	healthHandler := handlers.NewHealthHandler(db.DB)
+
+	// Initialize services
+	cleanupService := services.NewCleanupService(pasteRepo)
+	cleanupService.Start()
+	defer cleanupService.Stop()
 
 	// Setup router
 	router := mux.NewRouter()
 
 	// Apply global middleware
-	router.Use(middleware.LoggingMiddleware)
+	router.Use(middleware.SecurityHeaders)   // Add security headers
+	router.Use(middleware.LoggingMiddleware) // Use a proper structured logger
 	router.Use(middleware.RecoveryMiddleware)
 
 	// API routes
 	api := router.PathPrefix("/api").Subrouter()
 
-	// Health check endpoint
-	api.HandleFunc("/health", healthCheckHandler(db)).Methods("GET")
+	// Health check endpoints
+	api.HandleFunc("/health", healthHandler.BasicHealth).Methods("GET")
+	api.HandleFunc("/health/detailed", healthHandler.DetailedHealth).Methods("GET")
 
-	// Paste routes
-	api.Handle("/paste", rateLimiter.LimitPasteCreation(http.HandlerFunc(pasteHandler.Create))).Methods("POST")
-	api.Handle("/paste/{id}", rateLimiter.LimitPasteRetrieval(http.HandlerFunc(pasteHandler.GetByID))).Methods("GET")
-	api.Handle("/paste/{id}/raw", rateLimiter.LimitPasteRetrieval(http.HandlerFunc(pasteHandler.GetRaw))).Methods("GET")
-	api.HandleFunc("/paste/{id}/unlock", pasteHandler.GetByIDWithPassword).Methods("POST")
+	// Public paste routes
+	pasteRouter := api.PathPrefix("/paste").Subrouter()
+	pasteRouter.Handle("", rateLimiter.LimitPasteCreation(http.HandlerFunc(pasteHandler.Create))).Methods("POST")
+	pasteRouter.Handle("/{id}", rateLimiter.LimitPasteRetrieval(http.HandlerFunc(pasteHandler.GetByID))).Methods("GET")
+	pasteRouter.Handle("/{id}/raw", rateLimiter.LimitPasteRetrieval(http.HandlerFunc(pasteHandler.GetRaw))).Methods("GET")
+	pasteRouter.HandleFunc("/{id}/unlock", pasteHandler.GetByIDWithPassword).Methods("POST")
 
-	// User authentication routes
-	api.HandleFunc("/auth/register", userHandler.Register).Methods("POST")
-	api.HandleFunc("/auth/login", userHandler.Login).Methods("POST")
+	// Auth routes with rate limiting
+	authRouter := api.PathPrefix("/auth").Subrouter()
+	authRouter.Handle("/register", rateLimiter.LimitRegistration(http.HandlerFunc(userHandler.Register))).Methods("POST")
+	authRouter.Handle("/login", rateLimiter.LimitAuthentication(http.HandlerFunc(userHandler.Login))).Methods("POST")
+	authRouter.HandleFunc("/refresh", userHandler.RefreshToken).Methods("POST")
+	authRouter.HandleFunc("/logout", userHandler.Logout).Methods("POST") // Placeholder
 
 	// Protected routes (require authentication)
 	protected := api.PathPrefix("").Subrouter()
 	protected.Use(authMiddleware.RequireAuth)
-	protected.HandleFunc("/auth/profile", userHandler.GetProfile).Methods("GET")
+
+	// Protected user routes
+	protected.HandleFunc("/user/profile", userHandler.GetProfile).Methods("GET")
+	protected.HandleFunc("/user/pastes", pasteHandler.GetUserPastes).Methods("GET")
+
+	// Protected paste routes
 	protected.HandleFunc("/paste/{id}", pasteHandler.Delete).Methods("DELETE")
+	// protected.HandleFunc("/paste/{id}", pasteHandler.Update).Methods("PATCH") // TODO
 
 	// Wrap router with CORS
 	handler := middleware.CORSHandler(router, corsMiddleware)
@@ -109,20 +129,4 @@ func main() {
 	}
 
 	log.Println("Server stopped")
-}
-
-// healthCheckHandler provides a health check endpoint
-func healthCheckHandler(db *database.Database) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Check database health
-		if err := db.Health(); err != nil {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			fmt.Fprintf(w, `{"status":"unhealthy","database":"error","error":"%s"}`, err.Error())
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, `{"status":"healthy","database":"connected","version":"1.0.0"}`)
-	}
 }

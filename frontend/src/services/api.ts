@@ -20,7 +20,7 @@ const api: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('access_token');
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -47,7 +47,8 @@ api.interceptors.response.use(
 
             // Handle authentication errors
             if (error.response.status === 401) {
-                localStorage.removeItem('auth_token');
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
                 localStorage.removeItem('user');
                 window.location.href = '/login';
             }
