@@ -5,6 +5,25 @@ export interface Paste {
     created_at: string;
     expires_at?: string;
     has_password: boolean;
+    is_public?: boolean;
+    title?: string;
+    size?: number;
+}
+
+export interface PasteListItem {
+    id: string;
+    language?: string;
+    created_at: string;
+    expires_at?: string;
+    has_password: boolean;
+    size: number;
+}
+
+export interface UserPastesResponse {
+    pastes: PasteListItem[];
+    total: number;
+    page: number;
+    limit: number;
 }
 
 export interface CreatePasteRequest {

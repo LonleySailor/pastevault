@@ -1,18 +1,19 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import {
     DocumentDuplicateIcon,
     MoonIcon,
     SunIcon,
-    ComputerDesktopIcon,
-    UserIcon,
-    ArrowRightOnRectangleIcon
+    ComputerDesktopIcon
 } from '@heroicons/react/24/outline';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuthContext } from '../../context/AuthContext';
+import { UserDropdown } from './UserDropdown';
 
 export function Header() {
     const { theme, setTheme } = useTheme();
     const { user, isAuthenticated, logout } = useAuthContext();
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const themeIcons = {
         light: SunIcon,
@@ -27,6 +28,10 @@ export function Header() {
         const currentIndex = themes.indexOf(theme);
         const nextIndex = (currentIndex + 1) % themes.length;
         setTheme(themes[nextIndex]);
+    };
+
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
     };
 
     return (
@@ -72,21 +77,7 @@ export function Header() {
 
                         {/* Authentication */}
                         {isAuthenticated ? (
-                            <div className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                    <UserIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                                    <span className="text-sm text-gray-600 dark:text-gray-300">
-                                        {user?.username}
-                                    </span>
-                                </div>
-                                <button
-                                    onClick={logout}
-                                    className="flex items-center space-x-1 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white transition-colors"
-                                >
-                                    <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                                    <span className="text-sm">Logout</span>
-                                </button>
-                            </div>
+                            <UserDropdown user={user} onLogout={logout} />
                         ) : (
                             <div className="flex items-center space-x-4">
                                 <Link

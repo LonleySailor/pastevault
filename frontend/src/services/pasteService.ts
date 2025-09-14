@@ -1,6 +1,8 @@
 import api from './api';
 import type {
     Paste,
+    PasteListItem,
+    UserPastesResponse,
     CreatePasteRequest,
     CreatePasteResponse
 } from '../types/paste';
@@ -64,9 +66,9 @@ export class PasteService {
     /**
      * Get user's pastes (requires authentication)
      */
-    static async getUserPastes(): Promise<Paste[]> {
-        const response = await api.get<Paste[]>('/user/pastes');
-        return response.data;
+    static async getUserPastes(): Promise<PasteListItem[]> {
+        const response = await api.get<UserPastesResponse>('/user/pastes');
+        return response.data.pastes || [];
     }
 
     /**

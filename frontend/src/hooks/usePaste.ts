@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { PasteService } from '../services/pasteService';
 import type {
     Paste,
+    PasteListItem,
     CreatePasteRequest,
     CreatePasteResponse
 } from '../types/paste';
@@ -146,7 +147,7 @@ export function useCreatePaste() {
  * Hook for user's pastes (requires authentication)
  */
 export function useUserPastes() {
-    const [pastes, setPastes] = useState<Paste[]>([]);
+    const [pastes, setPastes] = useState<PasteListItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<APIError | null>(null);
 
@@ -166,9 +167,36 @@ export function useUserPastes() {
     }, []);
 
     const deletePaste = useCallback(async (id: string) => {
+        // Optimistic update
+        const previousPastes = [...pastes];
+        setPastes(prev => prev.filter(paste => paste.id !== id));
+
         try {
             await PasteService.deletePaste(id);
-            setPastes(prev => prev.filter(paste => paste.id !== id));
+        } catch (error) {
+            // Revert optimistic update on error
+            setPastes(previousPastes);
+            const apiError = error as APIError;
+            setError(apiError);
+            throw error;
+        }
+    }, [pastes]);
+
+    const createPaste = useCallback(async (data: CreatePasteRequest) => {
+        try {
+            const response = await PasteService.createPaste(data);
+            // Create a minimal paste object for the list
+            const newPaste: PasteListItem = {
+                id: response.id,
+                language: data.language,
+                created_at: response.created_at,
+                expires_at: response.expires_at,
+                has_password: !!data.password,
+                size: data.content.length,
+            };
+            // Update cache with new paste
+            setPastes(prev => [newPaste, ...prev]);
+            return response;
         } catch (error) {
             const apiError = error as APIError;
             setError(apiError);
@@ -182,5 +210,6 @@ export function useUserPastes() {
         error,
         fetchUserPastes,
         deletePaste,
+        createPaste,
     };
 }

@@ -1,6 +1,10 @@
 import axios from 'axios';
-import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import type { APIError } from '../types/api';
+
+// Retry configuration
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 const isDevelopment = import.meta.env.DEV;
 
@@ -31,17 +35,34 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor for error handling
+// Response interceptor with retry logic
 api.interceptors.response.use(
     (response: AxiosResponse) => {
         return response;
     },
-    (error) => {
+    async (error: AxiosError) => {
+        const config = error.config as InternalAxiosRequestConfig & { retryCount?: number };
+
+        // Check if we should retry the request
+        if (config && !config.retryCount) {
+            config.retryCount = 0;
+        }
+
+        if (config && config.retryCount !== undefined && config.retryCount < MAX_RETRIES) {
+            config.retryCount += 1;
+
+            // Delay before retry
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * config.retryCount!));
+
+            // Retry the request
+            return api(config);
+        }
+
         // Handle common error scenarios
         if (error.response) {
             const apiError: APIError = {
-                error: error.response.data?.error || 'An error occurred',
-                code: error.response.data?.code,
+                error: (error.response.data as any)?.error || 'An error occurred',
+                code: (error.response.data as any)?.code,
                 details: error.response.data,
             };
 
