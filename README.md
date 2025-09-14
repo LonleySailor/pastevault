@@ -1,4 +1,4 @@
-# PasteVault 🗄️
+# PrivatePaste 🗄️
 
 A lightweight, self-hosted pastebin clone written in Go with a React frontend.  
 Built to be simple, secure, and easy to deploy — supports expiring pastes, optional password protection, and a REST API.
