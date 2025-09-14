@@ -11,7 +11,7 @@ import toast from 'react-hot-toast';
 export function DashboardPage() {
     const { user, isAuthenticated, loading } = useAuth();
     const navigate = useNavigate();
-    const { pastes, loading: pastesLoading, error, fetchUserPastes, deletePaste } = useUserPastes();
+    const { pastes, loading: pastesLoading, fetchUserPastes, deletePaste } = useUserPastes();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [totalPastes, setTotalPastes] = useState(0);
     const [publicPastes, setPublicPastes] = useState(0);

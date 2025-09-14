@@ -1,0 +1,82 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node.js (frontend)
+frontend/node_modules/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/coverage/
+
+# Go (backend)
+backend/vendor/
+backend/pastevault-server
+backend/pastevault
+backend/*.db
+backend/server.log
+
+# Database files (will be created in container)
+*.db
+*.db-journal
+
+# Build artifacts
+backend/backend
+frontend/dist/
+
+# Test files
+**/*_test.go
+frontend/tests/
+backend/api_test.go
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Package files
+*.tar.gz
+*.zip
+
+# Makefile
+Makefile
+backend/Makefile
+
+# License
+LICENSE

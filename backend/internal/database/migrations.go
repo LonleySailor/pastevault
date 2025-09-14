@@ -26,11 +26,6 @@ func (d *Database) runMigrations() error {
 			Description: "Create pastes table",
 			SQL:         createPastesTableSQL,
 		},
-		{
-			ID:          3,
-			Description: "Add language column to pastes table",
-			SQL:         addLanguageColumnSQL,
-		},
 	}
 
 	// Execute migrations
@@ -115,7 +110,3 @@ CREATE TABLE IF NOT EXISTS pastes (
     user_id INTEGER,
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL
 );`
-
-// SQL for adding language column to existing pastes table
-const addLanguageColumnSQL = `
-ALTER TABLE pastes ADD COLUMN language TEXT;`

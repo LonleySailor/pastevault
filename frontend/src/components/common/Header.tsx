@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import {
     DocumentDuplicateIcon,
     MoonIcon,
@@ -13,7 +12,6 @@ import { UserDropdown } from './UserDropdown';
 export function Header() {
     const { theme, setTheme } = useTheme();
     const { user, isAuthenticated, logout } = useAuthContext();
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const themeIcons = {
         light: SunIcon,
@@ -28,10 +26,6 @@ export function Header() {
         const currentIndex = themes.indexOf(theme);
         const nextIndex = (currentIndex + 1) % themes.length;
         setTheme(themes[nextIndex]);
-    };
-
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
     };
 
     return (

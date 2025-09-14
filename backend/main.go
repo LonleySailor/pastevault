@@ -100,6 +100,13 @@ func main() {
 	protected.HandleFunc("/paste/{id}", pasteHandler.Delete).Methods("DELETE")
 	// protected.HandleFunc("/paste/{id}", pasteHandler.Update).Methods("PATCH") // TODO
 
+	// Serve static files (React frontend)
+	staticDir := "./frontend/dist/"
+	if _, err := os.Stat(staticDir); err == nil {
+		fs := http.FileServer(http.Dir(staticDir))
+		router.PathPrefix("/").Handler(http.StripPrefix("/", fs))
+	}
+
 	// Wrap router with CORS
 	handler := middleware.CORSHandler(router, corsMiddleware)
 

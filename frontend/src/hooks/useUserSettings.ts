@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { api } from '../services/api';
+import api from '../services/api';
 import type { APIError } from '../types/api';
 
 interface UserSettings {

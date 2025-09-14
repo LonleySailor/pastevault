@@ -2,23 +2,6 @@ import React, { useState } from 'react';
 import { useAuthContext } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Breadcrumbs } from '../components/common/Breadcrumbs';
-import toast from 'react-hot-toast';
-
-interface UserProfile {
-  username: string;
-  email?: string;
-  createdAt: string;
-  pasteCount: number;
-  preferences: UserPreferences;
-}
-
-interface UserPreferences {
-  defaultExpiry: string;
-  defaultLanguage: string;
-  theme: 'light' | 'dark' | 'system';
-  notifications: boolean;
-  publicPastesByDefault: boolean;
-}
 
 export function ProfilePage() {
   const { user, isAuthenticated, loading } = useAuthContext();
