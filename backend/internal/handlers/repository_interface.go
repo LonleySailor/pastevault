@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/LonleySailor/pastevault/backend/internal/models"
+import "github.com/LonleySailor/privatepaste/backend/internal/models"
 
 // PasteRepositoryInterface defines the interface for paste repository operations
 type PasteRepositoryInterface interface {

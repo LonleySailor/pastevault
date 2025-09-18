@@ -4,7 +4,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/LonleySailor/pastevault/backend/internal/models"
+	"github.com/LonleySailor/privatepaste/backend/internal/models"
 )
 
 // CleanupService handles automatic cleanup of expired pastes

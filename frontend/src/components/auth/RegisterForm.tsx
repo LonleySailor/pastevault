@@ -88,7 +88,7 @@ export function RegisterForm({ onSubmit, loading = false, error }: RegisterFormP
                         Create Account
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Join PasteVault to save and manage your pastes
+                        Join PrivatePaste to save and manage your pastes
                     </p>
                 </div>
 

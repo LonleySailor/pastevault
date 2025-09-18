@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/LonleySailor/pastevault/backend/internal/models"
-	"github.com/LonleySailor/pastevault/backend/pkg/utils"
-	"github.com/LonleySailor/pastevault/backend/pkg/validation"
+	"github.com/LonleySailor/privatepaste/backend/internal/models"
+	"github.com/LonleySailor/privatepaste/backend/pkg/utils"
+	"github.com/LonleySailor/privatepaste/backend/pkg/validation"
 	"github.com/gorilla/mux"
 )
 

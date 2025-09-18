@@ -1,4 +1,4 @@
-module github.com/LonleySailor/pastevault/backend
+module github.com/LonleySailor/privatepaste/backend
 
 go 1.25.1
 

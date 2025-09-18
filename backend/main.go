@@ -5,25 +5,69 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
-	"github.com/LonleySailor/pastevault/backend/internal/auth"
-	"github.com/LonleySailor/pastevault/backend/internal/config"
-	"github.com/LonleySailor/pastevault/backend/internal/database"
-	"github.com/LonleySailor/pastevault/backend/internal/handlers"
-	"github.com/LonleySailor/pastevault/backend/internal/middleware"
-	"github.com/LonleySailor/pastevault/backend/internal/models"
-	"github.com/LonleySailor/pastevault/backend/internal/services"
-	"github.com/LonleySailor/pastevault/backend/pkg/utils"
-	"github.com/LonleySailor/pastevault/backend/pkg/validation"
+	"github.com/LonleySailor/privatepaste/backend/internal/auth"
+	"github.com/LonleySailor/privatepaste/backend/internal/config"
+	"github.com/LonleySailor/privatepaste/backend/internal/database"
+	"github.com/LonleySailor/privatepaste/backend/internal/handlers"
+	"github.com/LonleySailor/privatepaste/backend/internal/middleware"
+	"github.com/LonleySailor/privatepaste/backend/internal/models"
+	"github.com/LonleySailor/privatepaste/backend/internal/services"
+	"github.com/LonleySailor/privatepaste/backend/pkg/utils"
+	"github.com/LonleySailor/privatepaste/backend/pkg/validation"
 	"github.com/gorilla/mux"
 )
+
+// setupStaticRoutes configures static file serving with SPA fallback support
+func setupStaticRoutes(router *mux.Router, staticDir string) {
+	// Create a file server for the entire static directory
+	fs := http.FileServer(http.Dir(staticDir))
+
+	// Serve all static files (including assets, favicon, etc.)
+	router.PathPrefix("/assets/").Handler(fs)
+	router.PathPrefix("/static/").Handler(fs) // In case assets are in /static/
+
+	// Handle specific files at root level
+	router.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, staticDir+"favicon.ico")
+	})
+	router.HandleFunc("/favicon.svg", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, staticDir+"favicon.svg")
+	})
+	router.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, staticDir+"manifest.json")
+	})
+
+	// SPA fallback handler - must be registered last
+	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Don't serve index.html for API routes
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			http.NotFound(w, r)
+			return
+		}
+
+		// For static assets, try to serve the file directly
+		requestedFile := staticDir + strings.TrimPrefix(r.URL.Path, "/")
+		if info, err := os.Stat(requestedFile); err == nil && !info.IsDir() {
+			// File exists and is not a directory, serve it directly
+			http.ServeFile(w, r, requestedFile)
+			return
+		}
+
+		// For everything else (including directories and non-existent files), serve index.html for SPA routing
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		http.ServeFile(w, r, staticDir+"index.html")
+	})
+}
 
 func main() {
 	// Load configuration
 	cfg := config.Load()
 
-	log.Printf("Starting PasteVault API server...")
+	log.Printf("Starting PrivatePaste API server...")
 	log.Printf("Environment: %s", cfg.Environment)
 	log.Printf("Port: %s", cfg.Port)
 	log.Printf("Database: %s", cfg.DatabasePath)
@@ -100,11 +144,10 @@ func main() {
 	protected.HandleFunc("/paste/{id}", pasteHandler.Delete).Methods("DELETE")
 	// protected.HandleFunc("/paste/{id}", pasteHandler.Update).Methods("PATCH") // TODO
 
-	// Serve static files (React frontend)
+	// Serve static files (React frontend) with SPA fallback
 	staticDir := "./frontend/dist/"
 	if _, err := os.Stat(staticDir); err == nil {
-		fs := http.FileServer(http.Dir(staticDir))
-		router.PathPrefix("/").Handler(http.StripPrefix("/", fs))
+		setupStaticRoutes(router, staticDir)
 	}
 
 	// Wrap router with CORS

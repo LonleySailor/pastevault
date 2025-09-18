@@ -10,7 +10,7 @@ const isDevelopment = import.meta.env.DEV;
 
 export const API_BASE_URL = isDevelopment
     ? 'http://localhost:8080/api'
-    : 'https://api.pastevault.lunatria.com/api';
+    : 'https://privatepaste.lunatria.com/api';
 
 // Create axios instance with base configuration
 const api: AxiosInstance = axios.create({
@@ -62,7 +62,7 @@ api.interceptors.response.use(
         if (error.response) {
             const apiError: APIError = {
                 error: (error.response.data as any)?.error || 'An error occurred',
-                code: (error.response.data as any)?.code,
+                code: (error.response.data as any)?.error || (error.response.data as any)?.code, // Use 'error' field as code since backend uses 'error' not 'code'
                 details: error.response.data,
             };
 

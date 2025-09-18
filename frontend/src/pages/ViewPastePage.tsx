@@ -33,6 +33,9 @@ export function ViewPastePage() {
             } catch (err: any) {
                 if (err.code === 'password_required') {
                     setShowPasswordInput(true);
+                } else {
+                    // For other errors, make sure password input is not shown
+                    setShowPasswordInput(false);
                 }
             }
         };
@@ -72,7 +75,7 @@ export function ViewPastePage() {
         );
     }
 
-    if (error && !showPasswordInput) {
+    if (error && !showPasswordInput && error.code !== 'password_required') {
         return (
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="text-center">

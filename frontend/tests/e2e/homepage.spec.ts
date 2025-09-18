@@ -17,7 +17,7 @@ test.describe('Homepage', () => {
         await page.goto('/');
 
         // Check header navigation
-        await expect(page.getByRole('link', { name: /pastevault/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /privatepaste/i })).toBeVisible();
         await expect(page.getByRole('link', { name: /create/i })).toBeVisible();
 
         // Test theme toggle
@@ -105,7 +105,7 @@ test.describe('Responsive Design', () => {
         await page.goto('/');
 
         // Check desktop layout
-        await expect(page.getByRole('link', { name: /pastevault/i })).toBeVisible();
+        await expect(page.getByRole('link', { name: /privatepaste/i })).toBeVisible();
         await expect(page.getByRole('link', { name: /create/i })).toBeVisible();
     });
 });

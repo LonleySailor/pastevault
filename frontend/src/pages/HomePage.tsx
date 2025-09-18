@@ -25,7 +25,7 @@ export function HomePage() {
                         </h1>
 
                         <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
-                            PasteVault is a self-hosted, secure pastebin for sharing code snippets,
+                            PrivatePaste is a self-hosted, secure pastebin for sharing code snippets,
                             text, and documents with optional password protection and automatic expiration.
                         </p>
 
@@ -60,7 +60,7 @@ export function HomePage() {
                             Secure paste sharing made simple
                         </p>
                         <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
-                            Built with security and privacy in mind, PasteVault offers all the features
+                            Built with security and privacy in mind, PrivatePaste offers all the features
                             you need to share code and text safely.
                         </p>
                     </div>

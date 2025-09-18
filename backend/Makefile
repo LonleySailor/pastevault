@@ -1,17 +1,17 @@
-# PasteVault Backend Makefile
+# PrivatePaste Backend Makefile
 # This is a simplified version that works with the root Makefile
 
 .PHONY: build run dev test clean deps health install-tools hot db-reset
 
 # Build the application
 build:
-	@echo "Building PasteVault server..."
-	go build -o pastevault-server .
+	@echo "Building PrivatePaste server..."
+	go build -o privatepaste-server .
 
 # Run the built application
 run: build
-	@echo "Starting PasteVault server..."
-	./pastevault-server
+	@echo "Starting PrivatePaste server..."
+	./privatepaste-server
 
 # Run in development mode
 dev:
@@ -31,8 +31,8 @@ test-coverage:
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
-	rm -f pastevault-server
-	rm -f pastevault.db
+	rm -f privatepaste-server
+	rm -f privatepaste.db
 
 # Download and tidy dependencies
 deps:
@@ -58,5 +58,5 @@ hot:
 # Database reset (removes database file)
 db-reset:
 	@echo "Resetting database..."
-	rm -f pastevault.db
+	rm -f privatepaste.db
 	@echo "Database will be recreated on next server start"

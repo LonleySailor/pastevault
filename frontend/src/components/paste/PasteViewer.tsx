@@ -37,7 +37,7 @@ export function PasteViewer({ paste, showMetadata = true }: PasteViewerProps) {
         if (navigator.share) {
             try {
                 await navigator.share({
-                    title: `PasteVault - ${paste.id}`,
+                    title: `PrivatePaste - ${paste.id}`,
                     text: 'Check out this paste',
                     url: url,
                 });

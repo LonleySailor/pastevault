@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/LonleySailor/pastevault/backend/internal/auth"
-	"github.com/LonleySailor/pastevault/backend/internal/middleware"
-	"github.com/LonleySailor/pastevault/backend/internal/models"
-	"github.com/LonleySailor/pastevault/backend/pkg/utils"
-	"github.com/LonleySailor/pastevault/backend/pkg/validation"
+	"github.com/LonleySailor/privatepaste/backend/internal/auth"
+	"github.com/LonleySailor/privatepaste/backend/internal/middleware"
+	"github.com/LonleySailor/privatepaste/backend/internal/models"
+	"github.com/LonleySailor/privatepaste/backend/pkg/utils"
+	"github.com/LonleySailor/privatepaste/backend/pkg/validation"
 )
 
 // UserHandler handles user-related HTTP requests

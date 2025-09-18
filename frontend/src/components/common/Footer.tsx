@@ -10,7 +10,7 @@ export function Footer() {
                         <DocumentDuplicateIcon className="h-6 w-6 text-primary-600" />
                         <div>
                             <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                PasteVault
+                                PrivatePaste
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
                                 Secure, self-hosted pastebin
@@ -21,7 +21,7 @@ export function Footer() {
                     {/* Links */}
                     <div className="flex items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                         <a
-                            href="https://github.com/LonleySailor/pastevault"
+                            href="https://github.com/LonleySailor/privatepaste"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="hover:text-gray-900 dark:hover:text-white transition-colors"

@@ -196,14 +196,14 @@ export function PasteSettings({
                                                 <div
                                                     key={i}
                                                     className={`h-1 flex-1 rounded ${i < strength
-                                                            ? strength <= 1
-                                                                ? 'bg-red-500'
-                                                                : strength <= 2
-                                                                    ? 'bg-yellow-500'
-                                                                    : strength <= 3
-                                                                        ? 'bg-blue-500'
-                                                                        : 'bg-green-500'
-                                                            : 'bg-gray-300 dark:bg-gray-600'
+                                                        ? strength <= 1
+                                                            ? 'bg-red-500'
+                                                            : strength <= 2
+                                                                ? 'bg-yellow-500'
+                                                                : strength <= 3
+                                                                    ? 'bg-blue-500'
+                                                                    : 'bg-green-500'
+                                                        : 'bg-gray-300 dark:bg-gray-600'
                                                         }`}
                                                 />
                                             );

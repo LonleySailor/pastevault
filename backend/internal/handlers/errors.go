@@ -59,7 +59,7 @@ var (
 	ErrPasswordRequired = &APIError{
 		Code:    "password_required",
 		Message: "This paste is password protected",
-		Status:  http.StatusUnauthorized,
+		Status:  http.StatusLocked, // 423 Locked - indicates resource is locked and requires authentication
 	}
 
 	ErrInvalidPassword = &APIError{

@@ -29,7 +29,7 @@ type Config struct {
 func Load() *Config {
 	config := &Config{
 		Port:             getEnv("PORT", "8080"),
-		DatabasePath:     getEnv("DATABASE_PATH", "./pastevault.db"),
+		DatabasePath:     getEnv("DATABASE_PATH", "./privatepaste.db"),
 		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
 		RefreshJWTSecret: getEnv("REFRESH_JWT_SECRET", "your-refresh-secret-key-change-in-production"),
 		Environment:      getEnv("ENVIRONMENT", "development"),
@@ -38,8 +38,8 @@ func Load() *Config {
 	// Set CORS origins based on environment
 	if config.Environment == "production" {
 		config.CORSOrigins = []string{
-			"https://pastevault.lunatria.com",
-			"https://www.pastevault.lunatria.com",
+			"https://privatepaste.lunatria.com",
+			"https://www.privatepaste.lunatria.com",
 		}
 	} else {
 		config.CORSOrigins = []string{

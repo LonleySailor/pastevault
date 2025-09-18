@@ -38,8 +38,8 @@ frontend/coverage/
 
 # Go (backend)
 backend/vendor/
-backend/pastevault-server
-backend/pastevault
+backend/privatepaste-server
+backend/privatepaste
 backend/*.db
 backend/server.log
 

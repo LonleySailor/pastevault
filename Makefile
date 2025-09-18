@@ -1,4 +1,4 @@
-# PasteVault Monorepo Makefile
+# PrivatePaste Monorepo Makefile
 
 .PHONY: help start start-backend start-frontend build build-backend build-frontend \
         test test-backend test-frontend clean clean-backend clean-frontend \
@@ -7,7 +7,7 @@
 
 # Default target
 help:
-	@echo "PasteVault Monorepo Commands:"
+	@echo "PrivatePaste Monorepo Commands:"
 	@echo ""
 	@echo "  Start Commands:"
 	@echo "    start              - Start both backend and frontend in parallel"
@@ -45,7 +45,7 @@ help:
 
 # Start both backend and frontend in parallel
 start:
-	@echo "🚀 Starting PasteVault (Backend + Frontend)..."
+	@echo "🚀 Starting PrivatePaste (Backend + Frontend)..."
 	@echo "Backend will be available at: http://localhost:8080"
 	@echo "Frontend will be available at: http://localhost:3000"
 	@echo "Press Ctrl+C to stop both services"
@@ -55,12 +55,12 @@ start:
 
 # Start only backend
 start-backend:
-	@echo "🔧 Starting PasteVault backend..."
+	@echo "🔧 Starting PrivatePaste backend..."
 	@cd backend && make run
 
 # Start only frontend  
 start-frontend:
-	@echo "🎨 Starting PasteVault frontend..."
+	@echo "🎨 Starting PrivatePaste frontend..."
 	@cd frontend && npm run dev
 
 # === BUILD COMMANDS ===
@@ -157,8 +157,8 @@ clean-frontend:
 
 # Stop any running processes
 stop:
-	@echo "🛑 Stopping any running PasteVault processes..."
-	@pkill -f "pastevault-server" 2>/dev/null || true
+	@echo "🛑 Stopping any running PrivatePaste processes..."
+	@pkill -f "privatepaste-server" 2>/dev/null || true
 	@pkill -f "vite" 2>/dev/null || true
 	@pkill -f "air" 2>/dev/null || true
 
@@ -182,13 +182,13 @@ install-tools:
 # Show project structure
 tree:
 	@echo "📁 Project structure:"
-	@tree -I 'node_modules|dist|pastevault-server|pastevault.db|*.log|.git' 2>/dev/null || find . -type f -name "*.go" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.json" -o -name "Makefile" | grep -E "(backend|frontend)" | sort
+	@tree -I 'node_modules|dist|privatepaste-server|privatepaste.db|*.log|.git' 2>/dev/null || find . -type f -name "*.go" -o -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.json" -o -name "Makefile" | grep -E "(backend|frontend)" | sort
 
 # === QUICK SETUP ===
 
 # Complete setup for new developers
 setup: deps build
-	@echo "✅ PasteVault setup complete!"
+	@echo "✅ PrivatePaste setup complete!"
 	@echo ""
 	@echo "Quick start:"
 	@echo "  make start    - Start both frontend and backend"
@@ -204,5 +204,5 @@ prod-build: clean build
 # Production deployment preparation
 prod-deploy: prod-build
 	@echo "📦 Ready for production deployment"
-	@echo "Backend binary: backend/pastevault-server"
+	@echo "Backend binary: backend/privatepaste-server"
 	@echo "Frontend dist: frontend/dist"

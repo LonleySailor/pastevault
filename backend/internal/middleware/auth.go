@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/LonleySailor/pastevault/backend/internal/auth"
+	"github.com/LonleySailor/privatepaste/backend/internal/auth"
 )
 
 // AuthMiddleware provides authentication functionality

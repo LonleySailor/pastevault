@@ -27,7 +27,7 @@ export function LoginForm({ onSubmit, loading = false, error }: LoginFormProps) 
                         Sign In
                     </h2>
                     <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Access your PasteVault account
+                        Access your PrivatePaste account
                     </p>
                 </div>
 

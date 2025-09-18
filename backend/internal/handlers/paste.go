@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/LonleySailor/pastevault/backend/internal/middleware"
-	"github.com/LonleySailor/pastevault/backend/internal/models"
-	"github.com/LonleySailor/pastevault/backend/pkg/utils"
-	"github.com/LonleySailor/pastevault/backend/pkg/validation"
+	"github.com/LonleySailor/privatepaste/backend/internal/middleware"
+	"github.com/LonleySailor/privatepaste/backend/internal/models"
+	"github.com/LonleySailor/privatepaste/backend/pkg/utils"
+	"github.com/LonleySailor/privatepaste/backend/pkg/validation"
 	"github.com/gorilla/mux"
 )
 
@@ -142,7 +142,7 @@ func (h *PasteHandler) Create(w http.ResponseWriter, r *http.Request) {
 	// Prepare response
 	response := CreatePasteResponse{
 		ID:        paste.ID,
-		URL:       "https://pastevault.example.com/" + paste.ID, // TODO: Use actual domain from config
+		URL:       "https://privatepaste.example.com/" + paste.ID, // TODO: Use actual domain from config
 		CreatedAt: paste.CreatedAt.Format(time.RFC3339),
 	}
 

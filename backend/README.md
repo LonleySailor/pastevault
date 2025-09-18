@@ -1,4 +1,4 @@
-# PasteVault Backend
+# PrivatePaste Backend
 
 A self-hosted pastebin service backend written in Go with SQLite database.
 
@@ -76,10 +76,10 @@ cd backend/
 go mod tidy
 
 # Build the application
-go build -o pastevault-server .
+go build -o privatepaste-server .
 
 # Run the server
-./pastevault-server
+./privatepaste-server
 ```
 
 ### Development
@@ -92,7 +92,7 @@ go run main.go
 go test ./...
 
 # Build for production
-go build -o pastevault-server .
+go build -o privatepaste-server .
 ```
 
 ## Configuration
@@ -102,7 +102,7 @@ Environment variables:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `8080` | Server port |
-| `DATABASE_PATH` | `./pastevault.db` | SQLite database file path |
+| `DATABASE_PATH` | `./privatepaste.db` | SQLite database file path |
 | `JWT_SECRET` | `your-secret-key-change-in-production` | JWT signing secret |
 | `ENVIRONMENT` | `development` | Environment (development/production) |
 
@@ -114,7 +114,7 @@ Environment variables:
 
 ### Production Environment
 
-- CORS restricted to `pastevault.lunatria.com`
+- CORS restricted to `privatepaste.lunatria.com`
 - Production-ready settings
 
 ## API Endpoints

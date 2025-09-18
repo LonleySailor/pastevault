@@ -1,6 +1,6 @@
 {
-  "name": "pastevault-frontend",
-  "description": "PasteVault React Frontend - Secure, self-hosted pastebin",
+  "name": "privatepaste-frontend",
+  "description": "PrivatePaste React Frontend - Secure, self-hosted pastebin",
   "private": true,
   "version": "1.0.0",
   "type": "module",
